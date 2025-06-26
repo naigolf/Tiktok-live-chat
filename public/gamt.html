@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>เกมข้อความวิ่ง</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .comment {
+      position: absolute;
+      white-space: nowrap;
+      font-size: 24px;
+      color: white;
+      animation: moveRight 8s linear forwards;
+      pointer-events: none;
+      padding: 4px 8px;
+    }
+
+    @keyframes moveRight {
+      0% {
+        left: -100%;
+      }
+      100% {
+        left: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  let line = 0;
+  const maxLines = Math.floor(window.innerHeight / 40); // บรรทัดสูง 40px
+
+  // เชื่อมต่อกับ TikTok Live
+  socket.emit('setUniqueId', '@saidahatsalep');
+
+  socket.on('chat', (data) => {
+    const comment = data.comment;
+
+    const span = document.createElement('span');
+    span.classList.add('comment');
+    span.textContent = comment;
+
+    // สุ่มสีข้อความ (จะได้ไม่จำเจ)
+    span.style.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+
+    // กำหนดตำแหน่ง Y ทีละบรรทัด (วนกลับ)
+    span.style.top = `${(line * 40) % window.innerHeight}px`;
+    line++;
+
+    document.body.appendChild(span);
+
+    // ลบออกเมื่อแอนิเมชันจบ
+    span.addEventListener('animationend', () => {
+      span.remove();
+    });
+  });
+
+  // แจ้งเตือนถ้าหลุดการเชื่อมต่อ
+  socket.on('tiktokDisconnected', (reason) => {
+    alert('❌ การเชื่อมต่อหลุด: ' + reason);
+  });
+</script>
+
+</body>
+</html>
